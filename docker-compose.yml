@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # 1. Gateway (The Brain)
+  gateway:
+    build: ./services/gateway
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" 
+    environment:
+      - RETRIEVER_URL=http://retriever:8001
+      - POLICY_URL=http://policy:8002
+      - LOGGER_URL=http://logger:8003
+      # Point to Ollama on the host machine
+      - LLM_API_BASE=${LLM_API_BASE}
+      - LLM_MODEL_NAME=llama3
+      - LLM_PROVIDER=local
+    depends_on:
+      - retriever
+      - policy
+
+  # 2. Retriever (The Search Engine)
+  retriever:
+    build: ./services/retriever
+    ports:
+      - "8001:8001"
+    environment:
+      - VECTOR_DB_URL=http://vector_db:8004
+    depends_on:
+      - vector_db
+
+  # 3. Vector DB (The Storage)
+  vector_db:
+    image: ankane/pgvector@sha256:d3a9d8ac27bb7e05e333ef25b634d2625adaa85336ab729954b9e94859bf6fa7
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ragdb
+
+  # 4. Policy Middleware (The Guardrail)
+  policy:
+    build: ./services/policy
+    ports:
+      - "8002:8002"
+
+  # 5. Logger (The Telemetry Sink)
+  logger:
+    build: ./services/logger
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./logs:/app/logs
