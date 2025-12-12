@@ -10,7 +10,7 @@ The system follows a microservices architecture running in Docker:
 4.  **Policy:** Middleware for input/output guardrails.
 5.  **Logger:** Centralized telemetry sink for metrics.
 
-## 🚀 Prerequisites
+## Recommended Environment
 
 ### Hardware
 * **OS:** Ubuntu 22.04 (WSL2 on Windows or Native Linux).
@@ -43,13 +43,15 @@ The `.env` file will default to a standard host URL. If you are on WSL2, you **m
     LLM_API_BASE=[http://172.](http://172.)x.x.x.x:11434/v1
     ```
 
-### 2\. Install & Serve the Model
-
-We use a 4-bit quantized **Llama-3-8B** to fit in consumer memory.
+### 2. Install & Serve the Model
+We use a specific hash of Llama-3-8B to ensure deterministic outputs.
 
 ```bash
-# In Terminal A
-ollama pull llama3
+# Pull the exact hash used in the paper experiments
+# Digest corresponds to llama3:latest as of Dec 2025 (4-bit Quantized)
+ollama pull llama3@sha256:365c0bd3c000a25d28ddbf732fe1c6add414de7275464c4e4d1c3b5fcb5d8ad1
+
+# Serve it
 OLLAMA_HOST=0.0.0.0:11434 ollama serve
 ```
 
