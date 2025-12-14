@@ -1,0 +1,6 @@
+FROM __WEIGHTS_DIR__/llama3.gguf
+PARAMETER temperature 0.0
+PARAMETER seed 42
+PARAMETER top_k 10
+PARAMETER top_p 0.9
+SYSTEM "You are a helpful and secure AI assistant."

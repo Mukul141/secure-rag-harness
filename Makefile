@@ -24,18 +24,25 @@ setup: setup-llm
 
 # 1b. LLM Setup: Generates absolute-path Modelfile
 setup-llm:
-	@echo "🔧 Configuring Local LLM..."
-	@if [ ! -f services/llm/weights/llama3.gguf ]; then \
-		echo "❌ GGUF weights not found at services/llm/weights/llama3.gguf"; \
-		echo "   Please run the wget command from README."; \
-		exit 1; \
+	@# 1. Check if model already exists in Ollama registry
+	@if ollama list | grep -q "secure-rag-llama3"; then \
+		echo "✅ Model 'secure-rag-llama3' already exists. Skipping build."; \
+	else \
+		echo "🔧 Configuring Local LLM..."; \
+		# 2. Verify Weights exist \
+		if [ ! -f services/llm/weights/llama3.gguf ]; then \
+			echo "❌ GGUF weights not found at services/llm/weights/llama3.gguf"; \
+			echo "   Please run the wget command from README."; \
+			exit 1; \
+		fi; \
+		# 3. Generate Modelfile \
+		echo "📝 Generating Modelfile with absolute paths..."; \
+		sed "s|__WEIGHTS_DIR__|$(PWD)/services/llm/weights|g" services/llm/Modelfile.template > services/llm/Modelfile; \
+		# 4. Create Model \
+		echo "🧠 Creating Ollama Model 'secure-rag-llama3'..."; \
+		ollama create secure-rag-llama3 -f services/llm/Modelfile; \
+		echo "✅ Model 'secure-rag-llama3' created successfully!"; \
 	fi
-	@echo "📝 Generating Modelfile with absolute paths..."
-	@# Replaces __WEIGHTS_DIR__ with the output of $(PWD)/services/llm/weights
-	@sed "s|__WEIGHTS_DIR__|$(PWD)/services/llm/weights|g" services/llm/Modelfile.template > services/llm/Modelfile
-	@echo "🧠 Creating Ollama Model 'secure-rag-llama3'..."
-	@ollama create secure-rag-llama3 -f services/llm/Modelfile
-	@echo "✅ Model 'secure-rag-llama3' created successfully!"
 
 # 2. Infrastructure Management
 up: setup

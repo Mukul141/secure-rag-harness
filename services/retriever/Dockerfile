@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 # 1. Install Dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --timeout=1000 -r requirements.txt
 
 # 2. Bake the Model 
 COPY download_model.py .
