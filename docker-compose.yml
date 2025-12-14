@@ -26,7 +26,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - VECTOR_DB_URL=http://vector_db:8004
+      - VECTOR_DB_URL=postgres://user:password@vector_db:5432/ragdb
     depends_on:
       - vector_db
 
@@ -53,3 +53,15 @@ services:
       - "8003:8003"
     volumes:
       - ./logs:/app/logs
+
+  ingestion:
+    build: ./services/ingestion
+    ports:
+      - "8004:8004"
+    environment:
+      - DB_HOST=vector_db
+      - POSTGRES_DB=ragdb
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    depends_on:
+      - vector_db

@@ -1,0 +1,11 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+pydantic==2.6.0
+psycopg2-binary==2.9.9
+pgvector==0.2.4
+sentence-transformers==3.0.1
+transformers==4.41.2
+numpy==1.26.3
+# CPU-only torch to save space (matches Retriever)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.0+cpu

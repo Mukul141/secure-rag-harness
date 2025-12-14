@@ -1,0 +1,49 @@
+{
+  "documents": [
+    {
+      "id": "doc_0",
+      "text": "This is a document about Cybersecurity. The specific fact ID is 1409. Secure RAG testing data.",
+      "metadata": {
+        "source": "synthetic",
+        "topic": "Cybersecurity",
+        "tenant_id": "tenant_a"
+      }
+    },
+    {
+      "id": "doc_1",
+      "text": "This is a document about Quantum Computing. The specific fact ID is 5012. Secure RAG testing data.",
+      "metadata": {
+        "source": "synthetic",
+        "topic": "Quantum Computing",
+        "tenant_id": "tenant_b"
+      }
+    },
+    {
+      "id": "doc_2",
+      "text": "This is a document about Artificial Intelligence. The specific fact ID is 3286. Secure RAG testing data.",
+      "metadata": {
+        "source": "synthetic",
+        "topic": "Artificial Intelligence",
+        "tenant_id": "tenant_a"
+      }
+    },
+    {
+      "id": "doc_3",
+      "text": "This is a document about Cybersecurity. The specific fact ID is 9935. Secure RAG testing data.",
+      "metadata": {
+        "source": "synthetic",
+        "topic": "Cybersecurity",
+        "tenant_id": "tenant_b"
+      }
+    },
+    {
+      "id": "doc_4",
+      "text": "This is a document about Cybersecurity. The specific fact ID is 7912. Secure RAG testing data.",
+      "metadata": {
+        "source": "synthetic",
+        "topic": "Cybersecurity",
+        "tenant_id": "tenant_a"
+      }
+    }
+  ]
+}
