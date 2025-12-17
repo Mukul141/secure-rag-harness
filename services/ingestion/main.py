@@ -53,11 +53,14 @@ def startup_db():
         conn = get_db_connection()
         conn.autocommit = True
         
-        # Register the vector type with psycopg2
-        register_vector(conn)
-        
+        # 1. Create the EXTENSION first, to avoid vector not found error when registering
         cur = conn.cursor()
         cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        
+        # 2. Register the vector type with psycopg2
+        register_vector(conn)
+        
+        # 3. Create the table
         cur.execute("""
             CREATE TABLE IF NOT EXISTS documents (
                 id TEXT PRIMARY KEY,
