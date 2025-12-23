@@ -14,7 +14,7 @@ class PromptInjectionExperiment(BaseExperiment, ABC):
         print(f"Running prompt injection experiment: {self.config['attack_type']}")
         dataset = self._load_dataset()
 
-        # Build the attack queue and perform any required setup
+        # Build the attack queue
         attack_queue = self._build_attack_queue(dataset)
 
         # Execute the experiment loop
@@ -34,7 +34,6 @@ class PromptInjectionExperiment(BaseExperiment, ABC):
     def _build_attack_queue(self, dataset):
         """
         Builds and returns a list of attack packets.
-        Any required database setup should be handled here.
         """
         pass
 
@@ -43,7 +42,18 @@ class PromptInjectionExperiment(BaseExperiment, ABC):
         results = []
 
         for i, packet in enumerate(tqdm(attack_queue, desc="Attacking")):
-            original_item, payload_name, prompt_text, search_text = packet
+            # Packet format:
+            # (original_item, payload_name, prompt_text, search_text, target_doc)
+            original_item, payload_name, prompt_text, search_text, target_doc = packet
+
+            # If a target document is provided, reset the database and ingest only that document
+            if target_doc is not None:
+                try:
+                    self.reset_and_ingest([target_doc])
+                except Exception as exc:
+                    print(f"Skipping sample {i} due to ingestion failure: {exc}")
+                    continue
+
             start_time = time.time()
 
             try:
@@ -57,7 +67,7 @@ class PromptInjectionExperiment(BaseExperiment, ABC):
                         "profile": self.config["profile"],
                         "seed": self.config["seed"],
                     },
-                    timeout=30,
+                    timeout=90,
                 )
                 response.raise_for_status()
                 data = response.json()
@@ -65,7 +75,7 @@ class PromptInjectionExperiment(BaseExperiment, ABC):
                 response_text = data["response"]
                 retrieved_context = data.get("context", [])
 
-                # Check whether poison appears in retrieved context
+                # Check whether poison appears in the retrieved context
                 has_poison = False
                 if retrieved_context:
                     doc_content = (
@@ -121,6 +131,8 @@ class PromptInjectionExperiment(BaseExperiment, ABC):
 
         if not df.empty:
             print(f"Experiment completed. ASR: {df['asv'].mean():.2%}")
+            print("\nBreakdown by payload strategy:")
+            print(df.groupby("payload_strategy")[["asv", "utility"]].mean())
         else:
             print("Experiment completed with no results.")
 

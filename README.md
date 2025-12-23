@@ -26,7 +26,14 @@ The system follows a microservices architecture running in Docker:
 
 ## Quick Start
 
-### 1. Download Model Weights
+### 1. Check Ollama installation
+Since the default Ollama installation (especially via Snap) binds to localhost, Docker containers often fail to connect.
+Downloading Ollama via the official installation script is recommended.
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+### 2. Download Model Weights
 To ensure exact reproducibility, we do not pull "latest" models. We manually download a specific commit hash of **Llama-3-8B-Instruct (Quantized)**.
 
 ```bash
@@ -39,7 +46,7 @@ wget -c --show-progress \
   -O services/llm/weights/llama3.gguf
 ````
 
-### 2\. Setup & Install
+### 3\. Setup & Install
 
 Run the setup command. This will:
 

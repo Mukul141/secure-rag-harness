@@ -77,13 +77,14 @@ def startup_db():
     try:
         conn = get_db_connection()
         conn.autocommit = True
-
-        register_vector(conn)
-
+        
+        
         cur = conn.cursor()
         cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
-        cur.execute(
-            """
+        
+        register_vector(conn)
+        
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS documents (
                 id TEXT PRIMARY KEY,
                 content TEXT,

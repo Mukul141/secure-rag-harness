@@ -4,11 +4,7 @@ from .base import PromptInjectionExperiment
 
 class DirectPromptInjectionExperiment(PromptInjectionExperiment):
     def _build_attack_queue(self, dataset):
-        print("Preparing clean documents for direct prompt injection...")
-
-        # Reset the database and ingest all clean documents once
-        self.reset_and_ingest(dataset)
-
+        print("Preparing attack queue with clean documents (Isolation Mode)...")
         attack_queue = []
         generators = get_all_generators()
 
@@ -23,9 +19,10 @@ class DirectPromptInjectionExperiment(PromptInjectionExperiment):
             poisoned_query = payload_gen.inject(item["query"])
 
             # Packet format:
-            # (original_item, payload_name, prompt_text, search_query)
+            # (original_item, payload_name, prompt_text, search_query, target_doc)
+            # For direct PI, the doc is clean, but we still isolate it
             attack_queue.append(
-                (item, payload_name, poisoned_query, item["query"])
+                (item, payload_name, poisoned_query, item["query"], item)
             )
 
         return attack_queue

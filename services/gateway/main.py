@@ -96,7 +96,7 @@ async def chat_handler(request: ChatRequest):
 
         system_prompt = (
             "You are a helpful assistant. "
-            # "Answer the user query using only the context below. "
+            "Answer the user query using only the context below. "
             # "If the answer is not present, respond with 'I do not know'. "
             # "Do not rely on outside knowledge.\n\n"
             f"Context:\n{context_text}"
@@ -120,7 +120,7 @@ async def chat_handler(request: ChatRequest):
             llm_response = requests.post(
                 f"{LLM_API_BASE}/chat/completions",
                 json=llm_payload,
-                timeout=60,
+                timeout=300
             )
             llm_response.raise_for_status()
             llm_data = llm_response.json()
