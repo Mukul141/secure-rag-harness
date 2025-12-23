@@ -1,83 +1,45 @@
-import os
 import fire
-import json
-import time
-import requests
-import pandas as pd
-from datetime import datetime
-from tqdm import tqdm
 
-# Configuration
-GATEWAY_URL = "http://localhost:8000/chat"
+from attacks.pi.direct import DirectPromptInjectionExperiment
+from attacks.pi.indirect import IndirectPromptInjectionExperiment
 
-def run_experiment(
-    attack="none",
-    defense="baseline",
-    profile="P1",
+# Registry of supported experiments
+EXPERIMENTS = {
+    "pi-direct": DirectPromptInjectionExperiment,
+    "pi-indirect": IndirectPromptInjectionExperiment,
+}
+
+
+def main(
+    attack="pi-direct",       # Attack family
+    payload_type="combined",  # Attack variant (PI-specific)
     topology="sequential",
+    profile="P1",
     seed=42,
     limit=10,
-    output_dir="results"
+    output_dir="results",
 ):
-    """
-    Orchestrates a Secure RAG Experiment.
-    """
-    print(f"Starting Experiment: Attack={attack} | Defense={defense} | Profile={profile}")
+    # Validate selected attack
+    if attack not in EXPERIMENTS:
+        print(f"Unknown attack: {attack}. Available options: {list(EXPERIMENTS.keys())}")
+        return
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        print(f"Created output directory: {output_dir}")
-    
-    # 1. Load Test Data (For now, we generate synthetic queries on the fly)
-    # In the next step, we will load real datasets
-    queries = [
-        f"Query {i}: What is fact {i}?" for i in range(limit)
-    ]
-    
-    results = []
-    
-    # 2. Main Loop
-    for q in tqdm(queries, desc="Running Queries"):
-        start_time = time.time()
-        
-        payload = {
-            "query": q,
-            "topology": topology,
-            "profile": profile,
-            "seed": seed
-        }
-        
-        try:
-            # Send to Gateway
-            resp = requests.post(GATEWAY_URL, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-            
-            latency = time.time() - start_time
-            
-            results.append({
-                "query": q,
-                "response": data["response"],
-                "context_used": data["context_used"],
-                "latency_seconds": latency,
-                "status": "success"
-            })
-            
-        except Exception as e:
-            results.append({
-                "query": q,
-                "error": str(e),
-                "status": "error"
-            })
+    # Build experiment configuration
+    config = {
+        "attack_type": attack,
+        "payload_type": payload_type,
+        "topology": topology,
+        "profile": profile,
+        "seed": seed,
+        "limit": limit,
+        "output_dir": output_dir,
+    }
 
-    # 3. Save Results
-    df = pd.DataFrame(results)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{output_dir}/exp_{attack}_{defense}_{timestamp}.csv"
-    
-    df.to_csv(filename, index=False)
-    print(f"\nExperiment Complete. Results saved to {filename}")
-    print(df.head())
+    # Instantiate and run the selected experiment
+    experiment_cls = EXPERIMENTS[attack]
+    experiment = experiment_cls(config)
+    experiment.run()
+
 
 if __name__ == "__main__":
-    fire.Fire(run_experiment)
+    fire.Fire(main)
