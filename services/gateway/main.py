@@ -88,7 +88,7 @@ async def chat_handler(request: ChatRequest):
             llm_resp = requests.post(
                 f"{LLM_API_BASE}/chat/completions",
                 json=llm_payload,
-                timeout=60 
+                timeout=300
             )
             llm_resp.raise_for_status()
             llm_data = llm_resp.json()
