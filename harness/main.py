@@ -1,7 +1,7 @@
 import fire
 
-from attacks.pi.direct import DirectPromptInjectionExperiment
-from attacks.pi.indirect import IndirectPromptInjectionExperiment
+from harness.attacks.pi.direct import DirectPromptInjectionExperiment
+from harness.attacks.pi.indirect import IndirectPromptInjectionExperiment
 
 # Registry of supported experiments
 EXPERIMENTS = {

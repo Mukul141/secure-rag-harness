@@ -6,7 +6,8 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
-from .middleware import check_policy, log_telemetry
+import middleware
+from middleware import check_policy, log_telemetry
 
 # ------------------------------------------------------------------
 # Setup

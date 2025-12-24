@@ -88,13 +88,13 @@ run:
 
 # Convenience targets for prompt-injection experiments
 run-pi-direct:
-	python3 harness/main.py \
+	python3 harness.main \
 		--attack=pi-direct \
 		--payload_type=combined \
 		--limit=10
 
 run-pi-indirect:
-	python3 harness/main.py \
+	python3 harness.main \
 		--attack=pi-indirect \
 		--payload_type=combined \
 		--limit=10
