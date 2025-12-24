@@ -1,3 +1,5 @@
-datasets==2.16.1
-tqdm==4.66.1
-pyarrow==14.0.2
+datasets>=2.14.0
+gdown>=4.7.1
+pandas>=2.0.0
+requests>=2.31.0
+tqdm>=4.65.0

@@ -53,8 +53,8 @@ setup-llm:
 setup-data:
 	@echo "Installing data dependencies..."
 	pip install -r data/requirements.txt
-	@echo "Downloading benchmark data..."
-	python3 data/download_benchmark.py
+	@echo "Running unified download script..."
+	python3 data/scripts/download_datasets.py
 
 # --------------------------------------------------
 # Infrastructure management
