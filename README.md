@@ -34,7 +34,7 @@ curl -fsSL https://ollama.com/install.sh | sh
 ```
 
 ### 2. Download Model Weights
-To ensure exact reproducibility, we do not pull "latest" models. We manually download a specific commit hash of **Llama-3-8B-Instruct (Quantized)**.
+To ensure exact reproducibility, we do not pull "latest" models. We manually download a specific commit hash of **Mistral-7B-Instruct-v0.2 (Quantized)**.
 
 ```bash
 # Create directory
@@ -42,8 +42,8 @@ mkdir -p services/llm/weights
 
 # Download GGUF (4.7GB) - Pinned to Commit 86e0c07
 wget -c --show-progress \
-  "https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/86e0c07efa3f1b6f06ea13e31b1e930dce865ae4/Meta-Llama-3-8B-Instruct.Q4_K_M.gguf?download=true" \
-  -O services/llm/weights/llama3.gguf
+  "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/1273fa131edbeb8a91006af324d8772dd0810cf0/mistral-7b-instruct-v0.2.Q4_K_M.gguf?download=true" \
+  -O services/llm/weights/mistral-7b-instruct-v0.2.Q4_K_M.gguf
 ````
 
 ### 3\. Setup & Install
@@ -52,7 +52,7 @@ Run the setup command. This will:
 
 1.  Generate your `.env` configuration file.
 2.  Generate a custom `Modelfile` using your absolute file paths.
-3.  Register the `secure-rag-llama3` model in Ollama.
+3.  Register the `mistral-7b-instruct:q4km` model in Ollama.
 
 
 

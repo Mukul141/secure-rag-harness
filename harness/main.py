@@ -1,13 +1,9 @@
 import fire
 
-from harness.attacks.pi.direct import DirectPromptInjectionExperiment
-from harness.attacks.pi.indirect import IndirectPromptInjectionExperiment
 from harness.attacks.pi.unified_experiment import UnifiedPIExperiment
 
 # Registry of supported experiments
 EXPERIMENTS = {
-    "pi-direct": DirectPromptInjectionExperiment,
-    "pi-indirect": IndirectPromptInjectionExperiment,
     "unified_pi": UnifiedPIExperiment,
 }
 

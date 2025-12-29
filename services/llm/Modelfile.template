@@ -1,6 +1,5 @@
-FROM __WEIGHTS_DIR__/llama3.gguf
+FROM __WEIGHTS_DIR__/mistral-7b-instruct-v0.2.Q4_K_M.gguf
 PARAMETER temperature 0.0
 PARAMETER seed 42
 PARAMETER top_k 10
 PARAMETER top_p 0.9
-SYSTEM ""

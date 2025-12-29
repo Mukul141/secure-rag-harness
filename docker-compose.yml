@@ -14,7 +14,7 @@ services:
       - LOGGER_URL=http://logger:8003
       # Point to Ollama on the host machine
       - LLM_API_BASE=${LLM_API_BASE}
-      - LLM_MODEL_NAME=secure-rag-llama3
+      - LLM_MODEL_NAME=mistral-7b-instruct:q4km
       - LLM_PROVIDER=local
     depends_on:
       - retriever

@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from tqdm import tqdm
 
 from .base_experiment import BaseExperiment
-from harness.evaluators.pi_evaluator import PIEvaluator
+from harness.evaluator  import PIEvaluator
 
 
 class PromptInjectionExperiment(BaseExperiment, ABC):

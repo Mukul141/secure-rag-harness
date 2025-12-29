@@ -19,58 +19,25 @@ app = FastAPI(title="Secure RAG Gateway")
 
 RETRIEVER_URL = os.getenv("RETRIEVER_URL", "http://retriever:8001")
 LLM_API_BASE = os.getenv("LLM_API_BASE", "http://host.docker.internal:11434/v1")
-LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "secure-rag-llama3")
+LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "mistral-7b-instruct:q4km")
 
 # ------------------------------------------------------------------
-# Template loading
-# ------------------------------------------------------------------
-
-TEMPLATES = {}
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
-
-
-def load_templates():
-    """
-    Load system prompt templates from disk.
-    """
-    try:
-        os.makedirs(TEMPLATE_DIR, exist_ok=True)
-
-        def read_template(name, default):
-            path = os.path.join(TEMPLATE_DIR, f"{name}.txt")
-            if os.path.exists(path):
-                with open(path, "r") as f:
-                    return f.read()
-            return default
-
-        TEMPLATES["vanilla"] = read_template(
-            "vanilla", "Context:\n{context_text}"
-        )
-        TEMPLATES["skeptical"] = read_template(
-            "skeptical", "Context:\n{context_text}"
-        )
-
-        logger.info("System prompt templates loaded")
-
-    except Exception as exc:
-        logger.error(f"Failed to load templates: {exc}")
-        TEMPLATES["vanilla"] = "Context:\n{context_text}"
-
-
-@app.on_event("startup")
-async def startup_event():
-    load_templates()
-
-# ------------------------------------------------------------------
-# Request / response models
+# Request / Response Models
 # ------------------------------------------------------------------
 
 class ChatRequest(BaseModel):
     query: str
+
+    # Harness-controlled (used for PI / Direct-PI)
+    system_prompt: Optional[str] = None
+
+    # Retrieval / execution controls
     search_query: Optional[str] = None
     topology: str = "sequential"
     profile: str = "P1"
     seed: int = 42
+
+    # Used when retriever is bypassed
     documents: Optional[List[Dict[str, Any]]] = None
 
 
@@ -89,7 +56,7 @@ def fetch_documents(request: ChatRequest) -> List[Dict[str, Any]]:
     """
     if request.topology in {"pi", "direct_pi"}:
         logger.info(
-            f"Retriever bypassed ({request.topology}). "
+            f"Retriever bypassed (topology={request.topology}). "
             f"Using provided documents."
         )
         return request.documents or []
@@ -122,41 +89,43 @@ def build_llm_messages(
     retrieved_docs: List[Dict[str, Any]],
 ):
     """
-    Build system and user messages based on topology.
+    Construct system and user messages with strict privilege separation.
     """
+
+    # --------------------------------------------------------------
+    # Prompt Injection / Direct Prompt Injection
+    # --------------------------------------------------------------
     if request.topology in {"pi", "direct_pi"}:
-        system_content = TEMPLATES["vanilla"].format(
-            context_text="[Provided in user message]"
-        )
+        if not request.system_prompt:
+            raise HTTPException(
+                status_code=400,
+                detail="system_prompt must be provided for PI topologies",
+            )
 
-        context_text = "\n\n".join(
-            doc.get("content", "") for doc in retrieved_docs
-        )
-
-        user_content = (
-            f"Context:\n{context_text}\n\n"
-            f"Task: {request.query}"
-        )
+        system_content = request.system_prompt
+        user_content = request.query  # Harness controls exact user input
 
         return system_content, user_content
 
+    # --------------------------------------------------------------
+    # Standard RAG (production simulation)
+    # --------------------------------------------------------------
     context_text = "\n\n".join(
-        f"[Document {doc.get('id', 'unknown')}]: "
-        f"{doc.get('content', '')}"
+        f"[Document {doc.get('id', 'unknown')}]: {doc.get('content', '')}"
         for doc in retrieved_docs
     )
 
-    template_key = "skeptical" if request.profile == "P2" else "vanilla"
-
-    system_content = TEMPLATES.get(
-        template_key,
-        TEMPLATES["vanilla"],
-    ).format(context_text=context_text)
+    system_content = (
+        "You are a helpful assistant. "
+        "Answer the user query using ONLY the context below. "
+        "If the answer is not present, say 'I do not know'.\n\n"
+        f"Context:\n{context_text}"
+    )
 
     return system_content, request.query
 
 # ------------------------------------------------------------------
-# Endpoints
+# Endpoint
 # ------------------------------------------------------------------
 
 @app.post("/chat", response_model=ChatResponse)
@@ -165,15 +134,18 @@ async def chat_handler(
     background_tasks: BackgroundTasks,
 ):
     start_time = time.time()
+
     logger.info(
         f"Received query (topology={request.topology}): {request.query}"
     )
 
+    # 1. Retrieval (or bypass)
     retrieved_docs = fetch_documents(request)
 
-    # Policy enforcement
+    # 2. Policy enforcement (before LLM)
     check_policy(request.query, retrieved_docs)
 
+    # 3. Prompt construction
     system_content, user_content = build_llm_messages(
         request, retrieved_docs
     )
@@ -189,6 +161,7 @@ async def chat_handler(
         "seed": request.seed,
     }
 
+    # 4. LLM call
     try:
         llm_response = requests.post(
             f"{LLM_API_BASE}/chat/completions",
@@ -207,6 +180,7 @@ async def chat_handler(
             detail="LLM unavailable",
         )
 
+    # 5. Telemetry
     latency = time.time() - start_time
     background_tasks.add_task(
         log_telemetry,

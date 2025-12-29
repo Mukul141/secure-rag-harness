@@ -28,26 +28,30 @@ setup: setup-llm
 
 # Builds the local Ollama model if it does not already exist
 setup-llm:
-	@# Check if the model is already registered in Ollama
-	@if ollama list | grep -q "secure-rag-llama3"; then \
-		echo "Model 'secure-rag-llama3' already exists. Skipping build."; \
+	@# Check if the Mistral model is already registered in Ollama
+	@if ollama list | grep -q "mistral-7b-instruct:q4km"; then \
+		echo "Model 'mistral-7b-instruct:q4km' already exists. Skipping build."; \
 	else \
-		echo "Configuring local LLM..."; \
-		# Verify model weights exist \
-		if [ ! -f services/llm/weights/llama3.gguf ]; then \
-			echo "GGUF weights not found at services/llm/weights/llama3.gguf"; \
+		echo "Configuring local Mistral LLM..."; \
+		\
+		# Verify Mistral GGUF weights exist \
+		if [ ! -f services/llm/weights/mistral-7b-instruct-v0.2.Q4_K_M.gguf ]; then \
+			echo "GGUF weights not found at services/llm/weights/mistral-7b-instruct-v0.2.Q4_K_M.gguf"; \
 			echo "Please run the download command from the README."; \
 			exit 1; \
 		fi; \
-		# Generate Modelfile with absolute paths \
+		\
+		# Generate Modelfile with absolute Linux paths (WSL-safe) \
 		echo "Generating Modelfile with absolute paths..."; \
 		sed "s|__WEIGHTS_DIR__|$(PWD)/services/llm/weights|g" \
 			services/llm/Modelfile.template > services/llm/Modelfile; \
+		\
 		# Create the Ollama model \
-		echo "Creating Ollama model 'secure-rag-llama3'..."; \
-		ollama create secure-rag-llama3 -f services/llm/Modelfile; \
-		echo "Model 'secure-rag-llama3' created successfully."; \
+		echo "Creating Mistral model: "; \
+		ollama create mistral-7b-instruct:q4km -f services/llm/Modelfile; \
+		echo "Model 'mistral-7b-instruct:q4km' created successfully."; \
 	fi
+
 
 # Installs data dependencies and downloads benchmark datasets
 setup-data:
